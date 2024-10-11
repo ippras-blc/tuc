@@ -1,0 +1,39 @@
+= TuC
+
+info:: `espflash board-info --port=/dev/ttyACM0`
+
+[source,shell]
+Chip type:         esp32c6 (revision v0.1)
+Crystal frequency: 40 MHz
+Flash size:        16MB
+Features:          WiFi 6, BT 5
+MAC address:       f0:f5:bd:0e:fe:f8
+
+list:: `usbipd list`
+
+[source,shell]
+a2f1b4fa-c685-4e4b-995f-40ad338d4eda  Устройство с последовательным интерфейсом USB (COM6), USB...A
+
+== Development environment setup
+
+list:: `usbipd list`
+
+[source,shell]
+3-11   303a:1001  Устройство с последовательным интерфейсом USB (COM6), USB...  Not shared
+
+bind:: `usbipd bind --busid 3-11`
+
+[source,shell]
+3-11   303a:1001  Устройство с последовательным интерфейсом USB (COM6), USB...  Shared
+
+=== Build environment setup
+
+attach:: `usbipd attach --wsl --busid 3-11`
+
+[source,shell]
+3-11   303a:1001  Устройство с последовательным интерфейсом USB (COM6), USB...  Attached
+
+==== Run
+
+[source,shell]
+cargo run
