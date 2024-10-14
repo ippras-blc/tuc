@@ -22,7 +22,6 @@ use futures_lite::future::block_on;
 use led::{Led, BLUE, GREEN, RED};
 use log::{debug, error, info, warn};
 use std::{process::exit, thread, time::Duration};
-use thermometer::Thermometer;
 use timed::Timed;
 use turbidimeter::Turbidimeter;
 
@@ -60,10 +59,6 @@ fn main() -> Result<()> {
     let mut led = Led::new(peripherals.pins.gpio8, peripherals.rmt.channel0)?;
     info!("Led initialized");
 
-    // Thermometer
-    let mut thermometer = Thermometer::new(peripherals.pins.gpio2)?;
-    info!("Thermometer initialized");
-
     // Turbidimeter
     // https://www.reddit.com/r/esp32/comments/1b6fles/adc2_is_no_longer_supported_please_use_adc1
     let mut turbidimeter = Turbidimeter::new(peripherals.adc1, peripherals.pins.gpio1)?;
@@ -93,15 +88,6 @@ fn main() -> Result<()> {
     let (event_sender, event_receiver) = bounded(CHANNEL_CAPACITY);
     executor.spawn(mqtt::publisher(client, timer, event_receiver));
 
-    // Temperature reader task
-    let timer = timer_service.timer_async()?;
-    executor.spawn(temperature::reader(
-        &mut thermometer,
-        timer,
-        &event_sender,
-        &led_sender,
-    ));
-
     // Turbidity reader task
     let timer = timer_service.timer_async()?;
     executor.spawn(turbidity::reader(
@@ -115,13 +101,5 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-/// Event
-#[derive(Clone, Copy, Debug)]
-enum Event {
-    Temperature(Timed<f32>),
-    Turbidity(Timed<u16>),
-}
-
 mod mqtt;
-mod temperature;
 mod turbidity;

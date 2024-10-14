@@ -1,4 +1,3 @@
-use crate::Event;
 use async_channel::Sender;
 use esp_idf_svc::{hal::gpio::ADCPin, timer::EspAsyncTimer};
 use led::{BLUE, RED, RGB8};
@@ -14,7 +13,7 @@ const DURATION: Duration = Duration::from_secs(1);
 pub(crate) async fn reader(
     turbidimeter: &mut Turbidimeter<'_>,
     mut timer: EspAsyncTimer,
-    event_sender: &Sender<Event>,
+    turbidity_sender: &Sender<Timed<u16>>,
     led_sender: &Sender<RGB8>,
 ) {
     turbidimeter.driver.start().unwrap();
@@ -24,11 +23,11 @@ pub(crate) async fn reader(
             match turbidimeter.read::<1>().await {
                 Ok([turbidity]) => {
                     led_sender.send(BLUE).await.ok();
-                    event_sender
-                        .send(Event::Turbidity(Timed {
+                    turbidity_sender
+                        .send(Timed {
                             time: OffsetDateTime::now_utc(),
                             value: turbidity,
-                        }))
+                        })
                         .await
                         .ok();
                     debug!("Turbidity={turbidity}");
