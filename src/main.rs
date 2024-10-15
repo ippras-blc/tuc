@@ -85,15 +85,15 @@ fn main() -> Result<()> {
 
     // MQTT publisher
     let timer = timer_service.timer_async()?;
-    let (event_sender, event_receiver) = bounded(CHANNEL_CAPACITY);
-    executor.spawn(mqtt::publisher(client, timer, event_receiver));
+    let (turbidity_sender, turbidity_receiver) = bounded(CHANNEL_CAPACITY);
+    executor.spawn(mqtt::publisher(client, timer, turbidity_receiver));
 
     // Turbidity reader task
     let timer = timer_service.timer_async()?;
     executor.spawn(turbidity::reader(
         &mut turbidimeter,
         timer,
-        &event_sender,
+        &turbidity_sender,
         &led_sender,
     ));
 
